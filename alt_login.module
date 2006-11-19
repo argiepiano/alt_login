@@ -1,0 +1,169 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_help()
+ */
+function alt_login_help($section) {
+  switch ($section) {
+    case 'admin/help#alt_login':
+      $output = t('
+      <p>This module provides an interface that allows registered users to use a login name which is different than their username.</p>
+      <p>To use, simply enable the module, then visit the user edit page. Enter the alternate login name in the \'Alternate Login\' textfield, and save.</p>
+      <p><em>Note that users can still login with their normal username--this just adds the option of another login name.  Also note that an alternate login name may not be equivalent to any other current alternate login name, nor any current username.</em></p>');
+      return $output;
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_form_alter()
+ */
+function alt_login_form_alter($form_id, &$form) {
+
+  switch ($form_id) {
+    case 'user_login':
+    case 'user_login_block':
+      // This validation happens before the main login validation.
+      $form['name']['#validate'] = array('_alt_login_login_validate' => array());
+      break;
+    case 'user_register':
+      $form['alt_login'] = array('#type' => 'textfield',
+        '#title' => t('Alternate Login'),
+        '#maxlength' => 56,
+        '#description' => t('If you wish to provide another valid login name, enter it here: only letters, numbers and spaces are allowed.'),
+      );
+
+      // Put the form field in the account fieldset if it exists.
+      if (isset($form['account'])) {
+        $form['account']['alt_login'] = $form['alt_login'];
+        unset($form['alt_login']);
+      }
+      break;
+  }
+}
+
+/**
+ * Implementation of hook_user().
+ */
+function alt_login_user($type, &$edit, &$user, $category = NULL) {
+
+  if ($type == 'delete') {
+    return _alt_login_delete($user->uid);
+  }
+  if ($type == 'validate') {
+    return _alt_login_validate($user->uid, $edit);
+  }
+  if ($type == 'update') {
+    return _alt_login_update($user->uid, $edit);
+  }
+  if ($type == 'insert') {
+    return _alt_login_register_submit($user->uid, $edit);
+  }
+  if ($category == 'account' && $type == 'form') {
+    return _alt_login_form($user);
+  }
+}
+
+/**
+ * Validates the alt login name if entered.
+ *
+ * @param $uid The user ID of the specified user.
+ * @param $edit Posted data.
+ */
+function _alt_login_validate($uid, $edit) {
+  $alt_login = $edit['alt_login'];
+
+  // Make sure the name isn't already taken as either another alt login or username.
+  if (db_result(db_query("SELECT uid FROM {alt_login} WHERE alt_login = '%s' AND uid != %d", $alt_login, $uid)) || db_result(db_query("SELECT uid FROM {users} WHERE name = '%s'", $alt_login))) {
+    form_set_error('alt_login', t('The name %name is already in use.', array('%name' => $alt_login)));
+  }
+  // Same validation as the regular username.
+  if ($alt_login && ($error = user_validate_name($alt_login))) {
+    form_set_error('alt_login', $error);
+  }
+}
+
+/**
+ * Updates the alt login info for the specified user.
+ *
+ * @param $uid The user ID of the user.
+ * @param $edit Posted data.
+ */
+function _alt_login_update($uid, &$edit) {
+  $alt_login = $edit['alt_login'];
+
+  // Only keep a database entry if an alternate login has been specified.
+  if ($alt_login) {
+    if (db_result(db_query('SELECT uid FROM {alt_login} WHERE uid = %d', $uid))) {
+      db_query("UPDATE {alt_login} SET alt_login = '%s' WHERE uid = %d", $alt_login, $uid);
+    }
+    else {
+      db_query("INSERT INTO {alt_login} (uid, alt_login) VALUES (%d, '%s')", $uid, $alt_login);
+    }
+  }
+  else {
+    db_query('DELETE FROM {alt_login} WHERE uid = %d', $uid);
+  }
+  // Don't want this saved in the data column of the users table, so unset.
+  unset($edit['alt_login']);
+}
+
+/**
+ * Deletes alt login info for a user if the user is deleted.
+ *
+ * @param $uid The user ID of the user being deleted.
+ */
+function _alt_login_delete($uid) {
+  db_query('DELETE FROM {alt_login} WHERE uid = %d', $uid);
+}
+
+/**
+ * Generates an alt login form field.
+ *
+ * @param $user The user to generate the field for.
+ * @return An array representing the form field.
+ */
+function _alt_login_form($user) {
+
+  // Grab the current alt login if it exists.
+  $alt_login = db_result(db_query('SELECT alt_login FROM {alt_login} WHERE uid = %d', $user->uid));
+  $alt_login = $alt_login ? $alt_login : '';
+
+  $form = array();
+  $form['account']['alt_login'] = array('#type' => 'textfield',
+    '#title' => t('Alternate Login'),
+    '#maxlength' => 56,
+    '#description' => t('If you wish to provide another valid login name, enter it here: only letters, numbers and spaces are allowed.'),
+    '#default_value' => $alt_login,
+  );
+
+  return $form;
+}
+
+/**
+ * Checks to see if a valid alt login was used, and converts it to the real username if so.
+ *
+ * @param $form Form element being validated.
+ */
+function _alt_login_login_validate($form) {
+  $name = $form['#value'];
+  $username = db_fetch_object(db_query("SELECT u.name FROM {users} u INNER JOIN {alt_login} al ON u.uid = al.uid WHERE al.alt_login = '%s'", $name));
+  if ($username->name) {
+    form_set_value($form, $username->name);
+  }
+}
+
+/**
+ * Adds an alt login for a new user if it was entered.
+ *
+ * @param $uid The user ID of the new user.
+ * @param $edit Posted values from registration.
+ */
+function _alt_login_register_submit($uid, $edit) {
+  $alt_login = $edit['alt_login'];
+  // Only insert a row if the alt login exists.
+  if ($alt_login) {
+    db_query("INSERT INTO {alt_login} (uid, alt_login) VALUES (%d, '%s')", $uid, $alt_login);
+  }
+}

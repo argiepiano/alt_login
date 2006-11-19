@@ -1,0 +1,46 @@
+<?php
+// $Id$
+
+/**
+ * Implementation of hook_install().
+ */
+function alt_login_install() {
+  switch ($GLOBALS['db_type']) {
+    case 'mysql':
+    case 'mysqli':
+      $query1 = db_query("CREATE TABLE {alt_login} (
+                           uid INT(11) NOT NULL,
+                           alt_login varchar(60) NOT NULL default '',
+                           PRIMARY KEY (uid)
+                         ) /*!40100 DEFAULT CHARACTER SET UTF8 */ ");
+      break;
+    case 'pgsql':
+      $query1 = db_query("CREATE TABLE {alt_login} (
+                          uid serial CHECK (uid >= 0),
+                          alt_login varchar(60) NOT NULL default '',
+                          PRIMARY KEY (uid)
+                        )");
+      break;
+  }
+
+  if ($query1) {
+    drupal_set_message(t('The Alternate Login module was installed successfully.'));
+  }
+  else {
+    drupal_set_message(t('There was an error installing the Alternate Login database tables--they may need to be installed manually.'), 'error');
+  }
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function alt_login_uninstall() {
+  $query1 = db_query('DROP TABLE {alt_login}');
+
+  if ($query1) {
+    drupal_set_message(t('The Alternate Login module has been uninstalled successfully.'));
+  }
+  else {
+    drupal_set_message(t('There was an error uninstalling the Alternate Login database tables.'), 'error');
+  }
+}

@@ -1,0 +1,3 @@
+; $Id$
+name = Alternate Login
+description = Allows users to have a login identity that's different from their username.
