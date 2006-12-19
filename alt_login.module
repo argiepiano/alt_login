@@ -54,7 +54,7 @@ function alt_login_user($type, &$edit, &$user, $category = NULL) {
   if ($type == 'validate') {
     return _alt_login_validate($user->uid, $edit);
   }
-  if ($type == 'update') {
+  if ($category == 'account' && $type == 'update') {
     return _alt_login_update($user->uid, $edit);
   }
   if ($type == 'insert') {
@@ -74,13 +74,15 @@ function alt_login_user($type, &$edit, &$user, $category = NULL) {
 function _alt_login_validate($uid, $edit) {
   $alt_login = $edit['alt_login'];
 
-  // Make sure the name isn't already taken as either another alt login or username.
-  if (db_result(db_query("SELECT uid FROM {alt_login} WHERE alt_login = '%s' AND uid != %d", $alt_login, $uid)) || db_result(db_query("SELECT uid FROM {users} WHERE name = '%s'", $alt_login))) {
-    form_set_error('alt_login', t('The name %name is already in use.', array('%name' => $alt_login)));
-  }
-  // Same validation as the regular username.
-  if ($alt_login && ($error = user_validate_name($alt_login))) {
-    form_set_error('alt_login', $error);
+  if ($alt_login) {
+    // Make sure the name isn't already taken as either another alt login or username.
+    if (db_result(db_query("SELECT uid FROM {alt_login} WHERE alt_login = '%s' AND uid != %d", $alt_login, $uid)) || db_result(db_query("SELECT uid FROM {users} WHERE name = '%s'", $alt_login))) {
+      form_set_error('alt_login', t('The name %name is already in use.', array('%name' => $alt_login)));
+    }
+    // Same validation as the regular username.
+    if ($error = user_validate_name($alt_login)) {
+      form_set_error('alt_login', $error);
+    }
   }
 }
 
