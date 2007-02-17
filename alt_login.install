@@ -38,6 +38,7 @@ function alt_login_uninstall() {
   if (db_table_exists('alt_login')) {
     $query1 = db_query('DROP TABLE {alt_login}');
   }
+  variable_del('alt_login_user_registration');
 
   if ($query1) {
     drupal_set_message(t('The Alternate Login module has been uninstalled successfully.'));

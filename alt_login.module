@@ -28,17 +28,26 @@ function alt_login_form_alter($form_id, &$form) {
       $form['name']['#validate'] = array('_alt_login_login_validate' => array());
       break;
     case 'user_register':
-      $form['alt_login'] = array('#type' => 'textfield',
-        '#title' => t('Alternate Login'),
-        '#maxlength' => 56,
-        '#description' => t('If you wish to provide another valid login name, enter it here: only letters, numbers and spaces are allowed.'),
-      );
-
-      // Put the form field in the account fieldset if it exists.
-      if (isset($form['account'])) {
-        $form['account']['alt_login'] = $form['alt_login'];
-        unset($form['alt_login']);
+      if (variable_get('alt_login_user_registration', 1)) {
+        $form['alt_login'] = array('#type' => 'textfield',
+          '#title' => t('Alternate Login'),
+          '#maxlength' => 56,
+          '#description' => t('If you wish to provide another valid login name, enter it here: only letters, numbers and spaces are allowed.'),
+        );
+        // Put the form field in the account fieldset if it exists.
+        if (isset($form['account'])) {
+          $form['account']['alt_login'] = $form['alt_login'];
+          unset($form['alt_login']);
+        }
       }
+      break;
+    case 'user_admin_settings':
+      $form['registration']['alt_login_user_registration'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Set alternate login on registration'),
+        '#default_value' => variable_get('alt_login_user_registration', 1),
+        '#description' => t('If selected, new users will be allowed to set an alternate login name as part of the user registration process.'),
+      );
       break;
   }
 }

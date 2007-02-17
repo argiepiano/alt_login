@@ -26,3 +26,8 @@ INSTALLATION:
       c.  The 'sites/all/modules' folder.
 
 2. Enable the module at Administer -> Modules.
+
+3. At Administer -> User Settings, set your preference for displaying the
+   alternate login option upon user registration.  Note that users can still
+   add/edit their alternate login at their account edit page regardless of
+   this setting.
