@@ -35,7 +35,9 @@ function alt_login_install() {
  * Implementation of hook_uninstall().
  */
 function alt_login_uninstall() {
-  $query1 = db_query('DROP TABLE {alt_login}');
+  if (db_table_exists('alt_login')) {
+    $query1 = db_query('DROP TABLE {alt_login}');
+  }
 
   if ($query1) {
     drupal_set_message(t('The Alternate Login module has been uninstalled successfully.'));
