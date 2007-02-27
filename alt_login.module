@@ -126,7 +126,7 @@ function _alt_login_update($uid, &$edit) {
     db_query('DELETE FROM {alt_login} WHERE uid = %d', $uid);
   }
   // Don't want this saved in the data column of the users table, so unset.
-  $edit['alt_login'] = NULL;
+  unset($edit['alt_login']);
 }
 
 /**
@@ -186,5 +186,5 @@ function _alt_login_register_submit($uid, $edit) {
   if ($alt_login) {
     db_query("INSERT INTO {alt_login} (uid, alt_login) VALUES (%d, '%s')", $uid, $alt_login);
   }
-  $edit['alt_login'] = NULL;
+  unset($edit['alt_login']);
 }
