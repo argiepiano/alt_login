@@ -84,9 +84,17 @@ function _alt_login_validate($uid, $edit) {
   $alt_login = $edit['alt_login'];
 
   if ($alt_login) {
+    // Can't have same username and alt login name.
+    if ($edit['name'] == $alt_login) {
+      form_set_error('alt_login', t('Username and Alternate Login cannot be the same.'));
+    }
+
     // Make sure the name isn't already taken as either another alt login or username.
     if (db_result(db_query("SELECT uid FROM {alt_login} WHERE alt_login = '%s' AND uid != %d", $alt_login, $uid)) || db_result(db_query("SELECT uid FROM {users} WHERE name = '%s'", $alt_login))) {
       form_set_error('alt_login', t('The name %name is already in use.', array('%name' => $alt_login)));
+    }
+    if (db_result(db_query("SELECT alt_login FROM {alt_login} WHERE alt_login = '%s'", $edit['name']))) {
+      form_set_error('name', t('The name %name is already in use.', array('%name' => $edit['name'])));
     }
     // Same validation as the regular username.
     if ($error = user_validate_name($alt_login)) {
@@ -117,7 +125,7 @@ function _alt_login_update($uid, &$edit) {
     db_query('DELETE FROM {alt_login} WHERE uid = %d', $uid);
   }
   // Don't want this saved in the data column of the users table, so unset.
-  unset($edit['alt_login']);
+  $edit['alt_login'] = NULL;
 }
 
 /**
@@ -177,4 +185,5 @@ function _alt_login_register_submit($uid, $edit) {
   if ($alt_login) {
     db_query("INSERT INTO {alt_login} (uid, alt_login) VALUES (%d, '%s')", $uid, $alt_login);
   }
+  $edit['alt_login'] = NULL;
 }
