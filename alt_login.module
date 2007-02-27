@@ -93,6 +93,7 @@ function _alt_login_validate($uid, $edit) {
     if (db_result(db_query("SELECT uid FROM {alt_login} WHERE alt_login = '%s' AND uid != %d", $alt_login, $uid)) || db_result(db_query("SELECT uid FROM {users} WHERE name = '%s'", $alt_login))) {
       form_set_error('alt_login', t('The name %name is already in use.', array('%name' => $alt_login)));
     }
+    // Make sure user can't change their username to an exiting alt_login name.
     if (db_result(db_query("SELECT alt_login FROM {alt_login} WHERE alt_login = '%s'", $edit['name']))) {
       form_set_error('name', t('The name %name is already in use.', array('%name' => $edit['name'])));
     }
