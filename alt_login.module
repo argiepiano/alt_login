@@ -180,7 +180,7 @@ function _alt_login_login_validate($form) {
  * @param $uid The user ID of the new user.
  * @param $edit Posted values from registration.
  */
-function _alt_login_register_submit($uid, $edit) {
+function _alt_login_register_submit($uid, &$edit) {
   $alt_login = $edit['alt_login'];
   // Only insert a row if the alt login exists.
   if ($alt_login) {
