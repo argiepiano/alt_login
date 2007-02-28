@@ -36,6 +36,7 @@ function alt_login_install() {
  *
  */
 function alt_login_update_1() {
+  $ret = array();
   // Getting rid of alt_login var from users data column.
   $users = db_query('SELECT uid FROM {users}');
   while ($user = db_fetch_object($users)) {
@@ -44,6 +45,8 @@ function alt_login_update_1() {
     $data = serialize($data);
     db_query("UPDATE {users} SET data = '%s' WHERE uid = %d", $data, $user->uid);
   }
+
+  return $ret;
 }
 
 /**
