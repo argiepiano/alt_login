@@ -17,6 +17,13 @@ function alt_login_help($section) {
 }
 
 /**
+ * Implementation of hook_perm().
+ */
+function alt_login_perm() {
+  return array('create alternate login');
+}
+
+/**
  * Implementation of hook_form_alter()
  */
 function alt_login_form_alter($form_id, &$form) {
@@ -27,11 +34,15 @@ function alt_login_form_alter($form_id, &$form) {
       // This validation happens before the main login validation.
       $form['name']['#validate'] = array('_alt_login_login_validate' => array());
       break;
+    case 'user_pass':
+      // This validation happens before the main user password validation.
+      $form['name']['#validate'] = array('_alt_login_pass_validate' => array());
+      break;
     case 'user_register':
       if (variable_get('alt_login_user_registration', 1)) {
         $form['alt_login'] = array('#type' => 'textfield',
           '#title' => t('Alternate Login'),
-          '#maxlength' => 56,
+          '#maxlength' => USERNAME_MAX_LENGTH,
           '#description' => t('If you wish to provide another valid login name, enter it here: only letters, numbers and spaces are allowed.'),
         );
         // Put the form field in the account fieldset if it exists.
@@ -105,6 +116,17 @@ function _alt_login_validate($uid, $edit) {
 }
 
 /**
+ * Checks for alt login name on password reset requests.
+ *
+ * @param $form The form array.
+ */
+function _alt_login_pass_validate($form) {
+  if ($name = db_result(db_query("SELECT u.name FROM {users} u INNER JOIN {alt_login} a ON u.uid = a.uid WHERE a.alt_login = '%s'", $form['#value']))) {
+    form_set_value($form, $name);
+  }
+}
+
+/**
  * Updates the alt login info for the specified user.
  *
  * @param $uid The user ID of the user.
@@ -122,7 +144,9 @@ function _alt_login_update($uid, &$edit) {
       db_query("INSERT INTO {alt_login} (uid, alt_login) VALUES (%d, '%s')", $uid, $alt_login);
     }
   }
-  else {
+  // Delete the alt login if it was set to an empty string. Using isset here keeps the alt login
+  // preserved in the case where it's being displayed as a form item.
+  elseif (isset($alt_login)) {
     db_query('DELETE FROM {alt_login} WHERE uid = %d', $uid);
   }
   // Don't want this saved in the data column of the users table, so unset.
@@ -146,17 +170,29 @@ function _alt_login_delete($uid) {
  */
 function _alt_login_form($user) {
 
+  $form = array();
+
   // Grab the current alt login if it exists.
   $alt_login = db_result(db_query('SELECT alt_login FROM {alt_login} WHERE uid = %d', $user->uid));
   $alt_login = $alt_login ? $alt_login : '';
 
-  $form = array();
-  $form['account']['alt_login'] = array('#type' => 'textfield',
-    '#title' => t('Alternate Login'),
-    '#maxlength' => 56,
-    '#description' => t('If you wish to provide another valid login name, enter it here: only letters, numbers and spaces are allowed.'),
-    '#default_value' => $alt_login,
-  );
+  // Permissioned users can create/edit their own alt login.
+  if (user_access('create alternate login')) {
+    $form['account']['alt_login'] = array('#type' => 'textfield',
+      '#title' => t('Alternate Login'),
+      '#maxlength' => USERNAME_MAX_LENGTH,
+      '#description' => t('If you wish to provide another valid login name, enter it here: only letters, numbers and spaces are allowed.'),
+      '#default_value' => $alt_login,
+    );
+  }
+  // For non-permissioned users, display their alt login if it exists.
+  elseif ($alt_login) {
+    $form['account']['alt_login'] = array('#type' => 'item',
+      '#title' => t('Alternate Login'),
+      '#description' => t('You may also login with this alternate username.'),
+      '#value' => $alt_login,
+    );
+  }
 
   return $form;
 }
