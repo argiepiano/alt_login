@@ -68,6 +68,9 @@ function alt_login_form_alter($form_id, &$form) {
  */
 function alt_login_user($type, &$edit, &$user, $category = NULL) {
 
+  if ($type == 'load') {
+    return _alt_login_load($user);
+  }
   if ($type == 'delete') {
     return _alt_login_delete($user->uid);
   }
@@ -82,6 +85,17 @@ function alt_login_user($type, &$edit, &$user, $category = NULL) {
   }
   if ($category == 'account' && $type == 'form') {
     return _alt_login_form($user);
+  }
+}
+
+/**
+ * Loads the user's alt_login to the user object.
+ *
+ * @param $user The user object.
+ */
+function _alt_login_load(&$user) {
+  if ($alt_login = db_result(db_query('SELECT alt_login FROM {alt_login} WHERE uid = %d', $user-> uid))) {
+    $user->alt_login = $alt_login;
   }
 }
 
