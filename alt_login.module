@@ -147,7 +147,13 @@ function _alt_login_pass_validate($form) {
  * @param $edit Posted data.
  */
 function _alt_login_update($uid, &$edit) {
-  $alt_login = $edit['alt_login'];
+  // Only proceed if some alt_login value exists.
+  if (isset($edit['alt_login'])) {
+    $alt_login = $edit['alt_login'];
+  }
+  else {
+    return;
+  }
 
   // Only keep a database entry if an alternate login has been specified.
   if ($alt_login) {
@@ -158,9 +164,8 @@ function _alt_login_update($uid, &$edit) {
       db_query("INSERT INTO {alt_login} (uid, alt_login) VALUES (%d, '%s')", $uid, $alt_login);
     }
   }
-  // Delete the alt login if it was set to an empty string. Using isset here keeps the alt login
-  // preserved in the case where it's being displayed as a form item.
-  elseif (isset($alt_login)) {
+  // Delete the alt login if it was set to an empty string.
+  elseif ($alt_login === '') {
     db_query('DELETE FROM {alt_login} WHERE uid = %d', $uid);
   }
   // Don't want this saved in the data column of the users table, so unset.
