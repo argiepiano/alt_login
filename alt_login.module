@@ -4,8 +4,8 @@
 /**
  * Implementation of hook_help()
  */
-function alt_login_help($section) {
-  switch ($section) {
+function alt_login_help($path, $arg) {
+  switch ($path) {
     case 'admin/help#alt_login':
       $output = t('
       <p>This module provides an interface that allows registered users to use a login name which is different than their username.</p>
@@ -84,7 +84,7 @@ function alt_login_user($type, &$edit, &$user, $category = NULL) {
     return _alt_login_register_submit($user->uid, $edit);
   }
   if ($category == 'account' && $type == 'form') {
-    return _alt_login_form($user);
+    return _alt_login_form($user, $edit);
   }
 }
 
@@ -134,7 +134,7 @@ function _alt_login_validate($uid, $edit) {
  *
  * @param $form The form array.
  */
-function _alt_login_pass_validate($form) {
+function _alt_login_pass_validate($form, &$form_state) {
   if ($name = db_result(db_query("SELECT u.name FROM {users} u INNER JOIN {alt_login} a ON u.uid = a.uid WHERE a.alt_login = '%s'", $form['#value']))) {
     form_set_value($form, $name, $form_state);
   }
@@ -185,9 +185,10 @@ function _alt_login_delete($uid) {
  * Generates an alt login form field.
  *
  * @param $user The user to generate the field for.
+ * @param $edit An array of form data.
  * @return An array representing the form field.
  */
-function _alt_login_form($user) {
+function _alt_login_form($user, &$edit) {
 
   $form = array();
 
@@ -221,7 +222,7 @@ function _alt_login_form($user) {
  *
  * @param $form Form element being validated.
  */
-function _alt_login_login_validate($form) {
+function _alt_login_login_validate($form, &$form_state) {
   $name = $form['#value'];
   $username = db_fetch_object(db_query("SELECT u.name FROM {users} u INNER JOIN {alt_login} al ON u.uid = al.uid WHERE al.alt_login = '%s'", $name));
   if ($username->name) {
