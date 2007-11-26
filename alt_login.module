@@ -26,17 +26,17 @@ function alt_login_perm() {
 /**
  * Implementation of hook_form_alter()
  */
-function alt_login_form_alter($form_id, &$form) {
+function alt_login_form_alter(&$form, $form_state, $form_id) {
 
   switch ($form_id) {
     case 'user_login':
     case 'user_login_block':
       // This validation happens before the main login validation.
-      $form['name']['#validate'] = array('_alt_login_login_validate' => array());
+      $form['name']['#element_validate'][] = '_alt_login_login_validate';
       break;
     case 'user_pass':
       // This validation happens before the main user password validation.
-      $form['name']['#validate'] = array('_alt_login_pass_validate' => array());
+      $form['name']['#element_validate'][] = '_alt_login_pass_validate';
       break;
     case 'user_register':
       if (variable_get('alt_login_user_registration', 1)) {
@@ -136,7 +136,7 @@ function _alt_login_validate($uid, $edit) {
  */
 function _alt_login_pass_validate($form) {
   if ($name = db_result(db_query("SELECT u.name FROM {users} u INNER JOIN {alt_login} a ON u.uid = a.uid WHERE a.alt_login = '%s'", $form['#value']))) {
-    form_set_value($form, $name);
+    form_set_value($form, $name, $form_state);
   }
 }
 
@@ -225,7 +225,7 @@ function _alt_login_login_validate($form) {
   $name = $form['#value'];
   $username = db_fetch_object(db_query("SELECT u.name FROM {users} u INNER JOIN {alt_login} al ON u.uid = al.uid WHERE al.alt_login = '%s'", $name));
   if ($username->name) {
-    form_set_value($form, $username->name);
+    form_set_value($form, $username->name, $form_state);
   }
 }
 
