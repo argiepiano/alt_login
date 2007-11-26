@@ -75,7 +75,8 @@ function alt_login_user($type, &$edit, &$user, $category = NULL) {
     return _alt_login_delete($user->uid);
   }
   if ($type == 'validate') {
-    return _alt_login_validate($user->uid, $edit);
+    $uid = isset($user->uid) ? $user->uid : NULL;
+    return _alt_login_validate($uid, $edit);
   }
   if ($category == 'account' && $type == 'update') {
     return _alt_login_update($user->uid, $edit);
@@ -106,7 +107,12 @@ function _alt_login_load(&$user) {
  * @param $edit Posted data.
  */
 function _alt_login_validate($uid, $edit) {
-  $alt_login = $edit['alt_login'];
+  $alt_login = isset($edit['alt_login']) ? $edit['alt_login'] : NULL;
+
+  // Make sure user can't set their username to an exiting alt_login name.
+  if (db_result(db_query("SELECT alt_login FROM {alt_login} WHERE alt_login = '%s'", $edit['name']))) {
+    form_set_error('name', t('The name %name is already in use.', array('%name' => $edit['name'])));
+  }
 
   if ($alt_login) {
     // Can't have same username and alt login name.
@@ -118,10 +124,7 @@ function _alt_login_validate($uid, $edit) {
     if (db_result(db_query("SELECT uid FROM {alt_login} WHERE alt_login = '%s' AND uid != %d", $alt_login, $uid)) || db_result(db_query("SELECT uid FROM {users} WHERE name = '%s'", $alt_login))) {
       form_set_error('alt_login', t('The name %name is already in use.', array('%name' => $alt_login)));
     }
-    // Make sure user can't change their username to an exiting alt_login name.
-    if (db_result(db_query("SELECT alt_login FROM {alt_login} WHERE alt_login = '%s'", $edit['name']))) {
-      form_set_error('name', t('The name %name is already in use.', array('%name' => $edit['name'])));
-    }
+
     // Same validation as the regular username.
     if ($error = user_validate_name($alt_login)) {
       form_set_error('alt_login', $error);
@@ -237,7 +240,7 @@ function _alt_login_login_validate($form, &$form_state) {
  * @param $edit Posted values from registration.
  */
 function _alt_login_register_submit($uid, &$edit) {
-  $alt_login = $edit['alt_login'];
+  $alt_login = isset($edit['alt_login']) ? $edit['alt_login'] : NULL;
   // Only insert a row if the alt login exists.
   if ($alt_login) {
     db_query("INSERT INTO {alt_login} (uid, alt_login) VALUES (%d, '%s')", $uid, $alt_login);
