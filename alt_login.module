@@ -44,6 +44,7 @@ function alt_login_form_alter(&$form, $form_state, $form_id) {
           '#title' => t('Alternate Login'),
           '#maxlength' => USERNAME_MAX_LENGTH,
           '#description' => t('If you wish to provide another valid login name, enter it here: only letters, numbers and spaces are allowed.'),
+          '#weight' => 29,  // Last field before the submit button.
         );
         // Put the form field in the account fieldset if it exists.
         if (isset($form['account'])) {
