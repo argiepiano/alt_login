@@ -110,7 +110,7 @@ function _alt_login_load(&$user) {
 function _alt_login_validate($uid, $edit) {
   $alt_login = isset($edit['alt_login']) ? $edit['alt_login'] : NULL;
 
-  // Make sure user can't set their username to an exiting alt_login name.
+  // Make sure user can't set their username to an existing alt_login name.
   if (db_result(db_query("SELECT alt_login FROM {alt_login} WHERE alt_login = '%s' and uid != %d", $edit['name'], $uid))) {
     form_set_error('name', t('The name %name is already in use.', array('%name' => $edit['name'])));
   }
