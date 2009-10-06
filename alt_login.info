@@ -1,4 +1,8 @@
 ; $Id$
 name = "Alternate Login"
 description = "Allows users to have a login identity that's different from their username."
-core = "6.x"
+core = "7.x"
+
+files[] = alt_login.install
+files[] = alt_login.module
+
