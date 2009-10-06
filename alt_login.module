@@ -36,12 +36,9 @@ function alt_login_form_alter(&$form, &$form_state, $form_id) {
   switch ($form_id) {
     case 'user_login':
     case 'user_login_block':
-      // This validation happens before the main login validation.
-      $form['name']['#element_validate'][] = '_alt_login_login_validate';
-      break;
     case 'user_pass':
-      // This validation happens before the main user password validation.
-      $form['name']['#element_validate'][] = '_alt_login_pass_validate';
+      // This validation happens before the main login validation.
+      $form['name']['#element_validate'][] = '_alt_login_username_validate';
       break;
     case 'user_register':
       if (variable_get('alt_login_user_registration', 1)) {
@@ -189,7 +186,7 @@ function alt_login_user_update(&$edit, $user, $category = NULL) {
         db_insert('alt_login')
           ->fields(array(
             'uid' => $uid,
-            'alt_login' => $alt_login,  
+            'alt_login' => $alt_login,
           ))
           ->execute();
       }
@@ -215,25 +212,11 @@ function alt_login_user_insert(&$edit, $user, $category = NULL) {
     db_insert('alt_login')
           ->fields(array(
             'uid' => $user->uid,
-            'alt_login' => $alt_login,  
+            'alt_login' => $alt_login,
           ))
           ->execute();
   }
   unset($edit['alt_login']);
-}
-
-/**
- * Checks for alt login name on password reset requests.
- *
- * @param $form Form element being validated.
- * @param $form_state
- */
-function _alt_login_pass_validate($form, &$form_state) {
-  if ($name = db_query("SELECT u.name FROM {users} u INNER JOIN {alt_login} a ON u.uid = a.uid WHERE a.alt_login = :alt_login", array(
-    ':alt_login' => $form['#value'],
-  ))->fetchField()) {
-    form_set_value($form, $name, $form_state);
-  }
 }
 
 /**
@@ -242,13 +225,13 @@ function _alt_login_pass_validate($form, &$form_state) {
  * @param $form Form element being validated.
  * @param $form_state
  */
-function _alt_login_login_validate($form, &$form_state) {
+function _alt_login_username_validate($form, &$form_state) {
   $name = $form['#value'];
-  $username = db_fetch_object(db_query("SELECT u.name FROM {users} u INNER JOIN {alt_login} al ON u.uid = al.uid WHERE al.alt_login = :alt_login", array(
+  $username = db_query("SELECT u.name FROM {users} u INNER JOIN {alt_login} al ON u.uid = al.uid WHERE al.alt_login = :alt_login", array(
     ':alt_login' => $name,
-  )));
-  if ($username->name) {
-    form_set_value($form, $username->name, $form_state);
+  ))->fetchField();
+  if ($username) {
+    form_set_value($form, $username, $form_state);
   }
 }
 
