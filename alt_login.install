@@ -37,6 +37,10 @@ function alt_login_schema() {
   return $schema;
 }
 
+function alt_login_update_last_removed() {
+  return 1;
+}
+
 /**
  * Implementation of hook_uninstall().
  */
