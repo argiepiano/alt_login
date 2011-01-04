@@ -28,13 +28,13 @@ INSTALLATION:
 
 2. Enable the module at Administer -> Modules.
 
-3. At Administer -> Access control, set the 'create alterate login'
+3. At Administration » People » Permissions, set the 'Create alternate login'
    permission for those roles that should be able to create/edit
    an alt login. If a user has and alt login created for them, but
    they do not have create permissions, then the alt login will be
    displayed as a non-editable form item.
 
-4. At Administer -> User Settings, set your preference for displaying the
-   alternate login option upon user registration.  Note that permissioned
-   users can still add/edit their alternate login at their account edit
-   page regardless of this setting.
+4. At Administration » Configuration » People, set your preference for
+   displaying the alternate login option upon user registration.  Note that
+   permissioned users can still add/edit their alternate login at their account
+   edit page regardless of this setting.
