@@ -4,7 +4,7 @@ $Id$
 
 Alternate login module -- README
 
-written by Chad Phillips: thehunmonkgroup at yahoo dot com
+written by Chad Phillips: thehunmonkgroup at gee mail dot com
 ****************************************************
 
 This module provides an interface that allows registered users to use a login
