@@ -2,7 +2,7 @@ $Id$
 
 ****************************************************
 
-Alternate Login Module -- README
+Alternate login module -- README
 
 written by Chad Phillips: thehunmonkgroup at yahoo dot com
 ****************************************************
@@ -12,7 +12,7 @@ name which is different than their username.
 
 To use, simply enable the module, set permissions for who can create an alt
 login, then visit the user edit page. Enter the alternate login name in the
-'Alternate Login' textfield, and save.
+'Alternate login' textfield, and save.
 
 Note that users can still login with their normal username--this just adds the
 option of another login name. Also note that an alternate login name may not
