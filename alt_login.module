@@ -243,17 +243,15 @@ function alt_login_user_insert(&$edit, $user, $category = NULL) {
 
 /**
  * Checks to see if a valid alt login was used, and converts it to the real username if so.
- *
- * @param $form Form element being validated.
- * @param $form_state
  */
 function _alt_login_username_validate($form, &$form_state) {
-  $name = $form['#value'];
-  $username = db_query("SELECT u.name FROM {users} u INNER JOIN {alt_login} al ON u.uid = al.uid WHERE al.alt_login = :alt_login", array(
-    ':alt_login' => $name,
-  ))->fetchField();
-  if ($username) {
-    form_set_value($form, $username, $form_state);
+  if (strlen($form['#value'])) {
+    $query = db_select('users', 'u')->fields('u', array('name'));
+    $query->innerjoin('alt_login',  'al', 'u.uid = al.uid');
+    $result = $query->condition('al.alt_login', $form['#value'])->execute();
+    if ($username = $result->fetchField()) {
+      form_set_value($form, $username, $form_state);
+    }
   }
 }
 
