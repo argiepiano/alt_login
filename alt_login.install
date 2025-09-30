@@ -36,20 +36,12 @@ function alt_login_schema() {
   return $schema;
 }
 
-function alt_login_update_last_removed() {
-  return 1;
-}
-
 /**
- * Implementation of hook_uninstall().
+ * Move variables to config.
  */
-function alt_login_uninstall() {
-  // Drop variables.
-  $variables = array(
-    'alt_login_user_registration',
-  );
-  foreach ($variables as $variable) {
-    variable_del($variable);
-  }
+function alt_login_update_1000() {
+  $config = config('alt_login.settings');
+  $config->set('user_registration', update_variable_get('alt_login_user_registration'));
+  $config->save();
+  update_variable_del('alt_login_user_registration');
 }
-
