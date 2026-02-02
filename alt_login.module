@@ -235,16 +235,32 @@ function alt_login_user_insert($account) {
 }
 
 /**
- * Checks to see if a valid alt login was used, and converts it to the real username if so.
+ * Special validation for alternative login.
+ * 
+ * Checks to see if a valid alt login was used, and converts it to the real
+ * username if so.
+ * 
+ * @param string $element
+ *   The entered username.
+ * @param array $form_state
+ *   The form_state array.
  */
-function _alt_login_username_validate($form, &$form_state) {
-  if (strlen($form['#value'])) {
-    $query = db_select('users', 'u')->fields('u', array('name'));
-    $query->join('alt_login',  'al', 'u.uid = al.uid');
-    $result = $query->condition('al.alt_login', $form['#value'])->execute();
-    if ($username = $result->fetchField()) {
-      form_set_value($form, $username, $form_state);
+function _alt_login_username_validate($element, &$form_state) {
+  // Ensure username value is a strings. An array may come from malformed HTML or
+  // malicious attacks.
+  if (is_array($element['#value'])) {
+    $element['#value'] = reset($element['#value'] );
+  }
+  if (strlen($element['#value'])) {
+    $username = db_query("
+      SELECT u.name
+      FROM 
+      {users} u
+      INNER JOIN {alt_login} al ON u.uid = al.uid
+      WHERE  (al.alt_login = :db_condition_placeholder_0)", 
+      array(':db_condition_placeholder_0' => $element['#value']))->fetchField(); 
+    if ($username) {
+      form_set_value($element, $username, $form_state);
     }
   }
 }
-
