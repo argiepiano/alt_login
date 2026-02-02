@@ -240,8 +240,8 @@ function alt_login_user_insert($account) {
  * Checks to see if a valid alt login was used, and converts it to the real
  * username if so.
  * 
- * @param string $element
- *   The entered username.
+ * @param array $element
+ *   The username element array.
  * @param array $form_state
  *   The form_state array.
  */
